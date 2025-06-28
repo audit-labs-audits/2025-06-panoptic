@@ -1,3 +1,0 @@
-./src/interfaces/IVaultAccountant.sol
-./test/HypoVault.t.sol
-./test/PanopticVaultAccountant.t.sol
