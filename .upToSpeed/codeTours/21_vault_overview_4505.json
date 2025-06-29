@@ -1,0 +1,111 @@
+{
+  "title": "2.1: Vault: Overview",
+  "id": "LB/03awk+D1mT8rKKiWJd7f3VzJWuKp6oIX/12fAQ80=",
+  "originalId": 4505,
+  "position": 2,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "We'll tour the core Vault system: the user-facing `HypoVault.sol`, the NAV helper `PanopticVaultAccountant.sol`, their interaction via `computeNAV`, and the privileged manager role.",
+      "title": "",
+      "id": "53612"
+    },
+    {
+      "type": "highlight",
+      "description": "The `HypoVault` contract inherits `ERC20Minimal`, `Multicall`, and `Ownable`, defining the main vault where a manager allocates user deposits and issues shares.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 16,
+          "end": 18
+        }
+      ],
+      "title": "",
+      "id": "53613"
+    },
+    {
+      "type": "highlight",
+      "description": "The `PanopticVaultAccountant` contract is `Ownable` and serves as the helper that computes the vault's Net Asset Value (NAV) based on manager-supplied data.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 19,
+          "end": 21
+        }
+      ],
+      "title": "",
+      "id": "53614"
+    },
+    {
+      "type": "highlight",
+      "description": "`fulfillDeposits` is a **manager**-only function. It processes queued deposits for the current epoch and invokes the `accountant` contract to compute the vault's asset value before minting new shares.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 472,
+          "end": 480
+        }
+      ],
+      "title": "",
+      "id": "53615"
+    },
+    {
+      "type": "highlight",
+      "description": "`computeNAV(address vault, address underlyingToken, bytes calldata managerInput)` decodes `managerInput` into `ManagerPrices[]`, `PoolInfo[]`, and `TokenId[][]`, showing that the manager provides external price quotes, pool configurations, and positions for the NAV calculation.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 94,
+          "end": 103
+        }
+      ],
+      "title": "",
+      "id": "53616"
+    },
+    {
+      "type": "highlight",
+      "description": "The position and pricing data for the `computeNAV` calculation is supplied by the `manager` via the `managerInput` argument. The `PanopticVaultAccountant` decodes this off-chain data, indicating a trust assumption in the `manager`.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 94,
+          "end": 103
+        }
+      ],
+      "title": "",
+      "id": "53620"
+    },
+    {
+      "type": "highlight",
+      "description": "The `manager` state variable stores the address authorized to call vault management functions (e.g., `fulfillDeposits`).",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 143,
+          "end": 148
+        }
+      ],
+      "title": "",
+      "id": "53617"
+    },
+    {
+      "type": "highlight",
+      "description": "The `onlyManager` modifier ensures that functions marked with it revert if `msg.sender` is not the designated `manager`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 197,
+          "end": 201
+        }
+      ],
+      "title": "",
+      "id": "53618"
+    },
+    {
+      "type": "textOnly",
+      "description": "We've seen how `HypoVault.sol` and `PanopticVaultAccountant.sol` collaborate: the vault calls `computeNAV` during `fulfillDeposits`, the manager supplies critical `managerInput`, and access is gated by the `manager` role.",
+      "title": "",
+      "id": "53619"
+    }
+  ]
+}

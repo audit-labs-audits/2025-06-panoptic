@@ -2,10 +2,13 @@
   "packageName": "2025-06-panoptic",
   "packageVersion": 1,
   "hash": "06fd6d9c2c7f4d59e5c811bb4674dd0a33b3ecc8",
-  "numberOfTours": 2,
+  "numberOfTours": 5,
   "titleOfTours": [
     "1.1: Panoptic Vault High-Level Overview",
-    "2.1: Want to learn more?"
+    "2.1: Vault: Overview",
+    "2.2: HypoVault: State and Data Structures",
+    "2.3: HypeVault: Epoch-Based Deposits and Withdrawals",
+    "3.1: Want to learn more?"
   ],
   "totalNumberOfSteps": 18,
   "filesCovered": [

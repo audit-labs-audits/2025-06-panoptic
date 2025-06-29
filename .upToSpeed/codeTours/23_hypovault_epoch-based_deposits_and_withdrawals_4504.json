@@ -1,0 +1,124 @@
+{
+  "title": "2.3: HypoVault: Epoch-Based Deposits and Withdrawals",
+  "id": "huWpxb0XgOJx1rFcVSHvauKuLrI/oCGeKj5Cgu0gEZs=",
+  "originalId": 4504,
+  "position": 4,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "We examine the three-stage, epoch-based deposit and withdrawal flows in `HypoVault`. Each operation is batched by epoch: users request, manager fulfills, and users then execute to claim their assets or shares.",
+      "title": "",
+      "id": "53621"
+    },
+    {
+      "type": "highlight",
+      "description": "`requestDeposit` queues a user’s assets in the current `depositEpoch`. Lines 231–233 update `queuedDeposit` and `depositEpochState`; line 237 transfers tokens into the vault; line 239 emits `DepositRequested`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 230,
+          "end": 239
+        }
+      ],
+      "title": "",
+      "id": "53622"
+    },
+    {
+      "type": "highlight",
+      "description": "`fulfillDeposits` is called by the manager to mint shares for the epoch:\n\n- Lines 480–483: Compute **NAV**.\n- Line 487: Calculate pro-rata `sharesReceived`.\n- Lines 491–495: Update the current epoch's state.\n- Lines 497–504: Advance `depositEpoch` and initialize the next epoch's state.\n- Line 506: Increase `totalSupply`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 472,
+          "end": 509
+        }
+      ],
+      "title": "",
+      "id": "53623"
+    },
+    {
+      "type": "highlight",
+      "description": "`executeDeposit(epoch)` lets users claim shares after fulfillment. It:\n\n*   Prorates queued assets to the fulfilled amount (lines 318-322).\n*   Computes `sharesReceived` for fulfilled assets (lines 324-328).\n*   Mints virtual shares to the user (line 331).\n*   Updates `userBasis` (line 333).\n*   Requeues unfulfilled assets to the next epoch (line 340).",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 310,
+          "end": 343
+        }
+      ],
+      "title": "",
+      "id": "53624"
+    },
+    {
+      "type": "highlight",
+      "description": "If a deposit is only partially fulfilled, `executeDeposit` calculates `assetsRemaining` and rolls them over by adding them to the user's `queuedDeposit` for the next epoch (`epoch + 1`).",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 337,
+          "end": 340
+        }
+      ],
+      "title": "",
+      "id": "53638"
+    },
+    {
+      "type": "highlight",
+      "description": "Unfulfilled deposit assets are automatically rolled over. `executeDeposit` calculates any `assetsRemaining` from a partial fulfillment and requeues them for the next epoch (`epoch + 1`).",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 337,
+          "end": 340
+        }
+      ],
+      "title": "",
+      "id": "53639"
+    },
+    {
+      "type": "highlight",
+      "description": "`requestWithdrawal` queues a user’s shares in the current `withdrawalEpoch`.\n\n* **L253-255**: Computes and removes the proportional `userBasis` for the withdrawn shares.\n* **L257-260**: Updates `queuedWithdrawal` with the new shares and basis.\n* **L262**: Increments the total `sharesWithdrawn` for the epoch.\n* **L264**: Burns the user's virtual shares.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 244,
+          "end": 267
+        }
+      ],
+      "title": "",
+      "id": "53625"
+    },
+    {
+      "type": "highlight",
+      "description": "`fulfillWithdrawals` is called by the manager to convert shares into assets. This function:\n\n- **Lines 522–525:** Computes **NAV**.\n- **Line 533:** Determines pro-rata `assetsReceived`.\n- **Line 535:** Enforces `maxAssetsReceived`.\n- **Lines 539–543:** Updates the current epoch's state.\n- **Lines 545–553:** Advances `withdrawalEpoch` and initializes the next epoch's state.\n- **Line 555:** Decreases `totalSupply`.\n- **Line 557:** Increases `reservedWithdrawalAssets`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 516,
+          "end": 560
+        }
+      ],
+      "title": "",
+      "id": "53626"
+    },
+    {
+      "type": "highlight",
+      "description": "`executeWithdrawal(epoch)` lets users withdraw assets post-fulfillment. The function:\n\n- Calculates `sharesToFulfill` and `assetsToWithdraw` pro-rata (lines 356–363).\n- Reduces `reservedWithdrawalAssets` (line 365).\n- Computes `performanceFee` on profits (lines 369–371).\n- Requeues unfulfilled shares and basis to the next epoch (lines 379–386).\n- Transfers the fee and assets to the respective recipients (lines 388–393).",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 348,
+          "end": 396
+        }
+      ],
+      "title": "",
+      "id": "53627"
+    },
+    {
+      "type": "textOnly",
+      "description": "Both deposit and withdrawal flows mirror each other: `request` → `manager fulfill` → `execute`, with batching by epoch and pro-rata settlement based on **NAV**.",
+      "title": "",
+      "id": "53628"
+    }
+  ]
+}

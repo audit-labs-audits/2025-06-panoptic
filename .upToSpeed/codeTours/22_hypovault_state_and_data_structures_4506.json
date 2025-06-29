@@ -1,0 +1,176 @@
+{
+  "title": "2.2: HypoVault: State and Data Structures",
+  "id": "N0twIRfLr5OQQV6V5WpLPftK7CytB4huo6dT4HQYVfQ=",
+  "originalId": 4506,
+  "position": 3,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This walkthrough explains `HypoVault`’s core data structures and state variables: how it batches user deposit/withdrawal requests into epochs, tracks per-epoch aggregates, queues individual requests, and maintains each user’s cost basis for performance fees.",
+      "title": "",
+      "id": "53682"
+    },
+    {
+      "type": "highlight",
+      "description": "The `PendingWithdrawal` struct tracks a user's specific withdrawal request.\n\n* `amount`: The number of shares requested for withdrawal.\n* `basis`: The cost basis of the shares being withdrawn, used for calculating performance fees.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 28,
+          "end": 31
+        }
+      ],
+      "title": "",
+      "id": "53683"
+    },
+    {
+      "type": "highlight",
+      "description": "`DepositEpochState` tracks aggregate data for a deposit epoch: total `assetsDeposited` requested, the `assetsFulfilled` by the manager, and the corresponding `sharesReceived`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 37,
+          "end": 41
+        }
+      ],
+      "title": "",
+      "id": "53684"
+    },
+    {
+      "type": "highlight",
+      "description": "The `WithdrawalEpochState` struct tracks aggregate data for each withdrawal epoch. It holds the total `sharesWithdrawn` requested by users, the `sharesFulfilled` by the manager, and the `assetsReceived` for those fulfilled shares.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 47,
+          "end": 51
+        }
+      ],
+      "title": "",
+      "id": "53685"
+    },
+    {
+      "type": "highlight",
+      "description": "These mappings store the state for each deposit and withdrawal epoch, linking an epoch number to the `DepositEpochState` and `WithdrawalEpochState` structs.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 160,
+          "end": 163
+        }
+      ],
+      "title": "",
+      "id": "53686"
+    },
+    {
+      "type": "highlight",
+      "description": "When queuing a deposit, `requestDeposit` adds the amount to both the user's specific queue (`queuedDeposit`) and the epoch's aggregate (`depositEpochState`), then transfers the assets into the vault.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 233,
+          "end": 237
+        }
+      ],
+      "title": "",
+      "id": "53687"
+    },
+    {
+      "type": "highlight",
+      "description": "When queuing a withdrawal:\n1. The user's request is added to the `queuedWithdrawal` mapping for the current epoch.\n2. The epoch's aggregate `sharesWithdrawn` is incremented.\n3. The user's shares are virtually burned.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 257,
+          "end": 264
+        }
+      ],
+      "title": "",
+      "id": "53688"
+    },
+    {
+      "type": "highlight",
+      "description": "When the manager fulfills deposits, `depositEpochState` is updated to finalize the epoch. It records the total assets requested, the amount fulfilled by the manager, and the corresponding shares minted.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 491,
+          "end": 495
+        }
+      ],
+      "title": "",
+      "id": "53689"
+    },
+    {
+      "type": "highlight",
+      "description": "To finalize the withdrawal epoch, `fulfillWithdrawals` updates `withdrawalEpochState`, recording the `assetsReceived` for the `sharesFulfilled`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 539,
+          "end": 543
+        }
+      ],
+      "title": "",
+      "id": "53690"
+    },
+    {
+      "type": "highlight",
+      "description": "When a deposit is executed, the user receives their shares, and their cost basis is increased by the value of the deposited assets.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 331,
+          "end": 333
+        }
+      ],
+      "title": "",
+      "id": "53691"
+    },
+    {
+      "type": "highlight",
+      "description": "When a user requests a withdrawal, the cost basis for the shares being withdrawn (`withdrawalBasis`) is calculated proportionally to their total holdings. This amount is then deducted from the user's `userBasis`, reserving it for the pending withdrawal.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 249,
+          "end": 255
+        }
+      ],
+      "title": "",
+      "id": "53692"
+    },
+    {
+      "type": "highlight",
+      "description": "The calculated `withdrawalBasis` is moved from the user's main `userBasis` into the `PendingWithdrawal` struct for the request. This isolates the basis for the specific withdrawal, preventing its reuse in subsequent requests and reserving it for the eventual performance fee calculation in `executeWithdrawal`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 257,
+          "end": 260
+        }
+      ],
+      "title": "",
+      "id": "53695"
+    },
+    {
+      "type": "highlight",
+      "description": "The performance fee is calculated on the withdrawal's profit. First, the user's `withdrawnBasis` is determined pro-rata based on the epoch's fulfillment ratio. The fee is then applied to the profit, which is the amount of `assetsToWithdraw` exceeding this `withdrawnBasis`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 367,
+          "end": 371
+        }
+      ],
+      "title": "",
+      "id": "53693"
+    },
+    {
+      "type": "textOnly",
+      "description": "**Overall Workflow**\n\n**Deposit flow:**\n1. User ➔ `requestDeposit`: queues assets & updates `depositEpochState`.\n2. Manager ➔ `fulfillDeposits`: records fulfilled assets/shares & advances epoch.\n3. User ➔ `executeDeposit`: receives prorated shares & increases `userBasis`.\n\n**Withdrawal flow:**\n1. User ➔ `requestWithdrawal`: burns shares, reserves basis & queues request.\n2. Manager ➔ `fulfillWithdrawals`: allocates assets & advances epoch.\n3. User ➔ `executeWithdrawal`: receives assets, calculates profit vs. `userBasis`, deducts performance fee, & transfers net assets.",
+      "title": "",
+      "id": "53694"
+    }
+  ]
+}
