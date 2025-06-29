@@ -1,0 +1,16 @@
+{
+  "packageName": "2025-06-panoptic",
+  "packageVersion": 1,
+  "hash": "06fd6d9c2c7f4d59e5c811bb4674dd0a33b3ecc8",
+  "numberOfTours": 2,
+  "titleOfTours": [
+    "1.1: Panoptic Vault High-Level Overview",
+    "2.1: Want to learn more?"
+  ],
+  "totalNumberOfSteps": 18,
+  "filesCovered": [
+    "src/HypoVault.sol",
+    "src/accountants/PanopticVaultAccountant.sol"
+  ],
+  "numberOfFilesCovered": 2
+}

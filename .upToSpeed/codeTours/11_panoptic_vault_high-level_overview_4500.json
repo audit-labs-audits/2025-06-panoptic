@@ -1,0 +1,201 @@
+{
+  "title": "1.1: Panoptic Vault High-Level Overview",
+  "id": "uY7CujrrwMwcM7cEOxDWR+jtkvt6hLYFKslNJ9QdjvA=",
+  "originalId": 4500,
+  "position": 1,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This tour provides a high-level overview of the **Panoptic Vault** codebase. We will cover the two main contracts, the manager-centric operational model, and the epoch-based settlement mechanism. This sets the stage for more in-depth tours that will follow.",
+      "title": "",
+      "id": "53665"
+    },
+    {
+      "type": "highlight",
+      "description": "This is the user-facing vault contract. Deposits and withdrawals are queued and processed in epochs. The vault issues `ERC20` shares representing a claim on its underlying assets.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 16,
+          "end": 18
+        }
+      ],
+      "title": "",
+      "id": "53666"
+    },
+    {
+      "type": "highlight",
+      "description": "Key roles and parameters:\n- `underlyingToken`: The asset denomination.\n- `performanceFeeBps` & `feeWallet`: Performance fee on profits and recipient wallet.\n- `manager`: Privileged actor managing the vault.\n- `accountant`: NAV oracle contract.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 136,
+          "end": 149
+        }
+      ],
+      "title": "",
+      "id": "53667"
+    },
+    {
+      "type": "highlight",
+      "description": "**Epoch-based design batches user actions:**\n- `depositEpoch` and `withdrawalEpoch` track current epochs.\n- `reservedWithdrawalAssets` holds assets reserved for fulfilled withdrawals.\n- `Mappings` `depositEpochState` and `withdrawalEpochState` track fulfillments per epoch.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 150,
+          "end": 167
+        }
+      ],
+      "title": "",
+      "id": "53668"
+    },
+    {
+      "type": "highlight",
+      "description": "Request phase:\n- `requestDeposit` queues deposits and pulls tokens in.\n- `requestWithdrawal` queues withdrawals and burns shares virtually.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 228,
+          "end": 267
+        }
+      ],
+      "title": "",
+      "id": "53669"
+    },
+    {
+      "type": "highlight",
+      "description": "**Settlement phase (deposits):**\nManager calls `fulfillDeposits` to process queued deposits, computes NAV via `accountant`, mints shares, and reserves unfulfilled assets for the next epoch.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 472,
+          "end": 509
+        }
+      ],
+      "title": "",
+      "id": "53670"
+    },
+    {
+      "type": "highlight",
+      "description": "**Settlement phase (withdrawals):**\nManager calls `fulfillWithdrawals` to process queued withdrawals, computes NAV, burns supply, reserves assets, and enforces maximum assets per manager via `maxAssetsReceived`.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 516,
+          "end": 560
+        }
+      ],
+      "title": "",
+      "id": "53671"
+    },
+    {
+      "type": "highlight",
+      "description": "**Execution phase (deposit):**\nAfter an epoch is fulfilled, `executeDeposit` converts queued assets into shares, updates the user’s basis, and moves any unfulfilled assets to the next epoch.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 307,
+          "end": 343
+        }
+      ],
+      "title": "",
+      "id": "53672"
+    },
+    {
+      "type": "highlight",
+      "description": "Execution phase (withdrawal):\nAfter an epoch is fulfilled, `executeWithdrawal` disburses assets minus performance fees, updates the user queue, and moves any unfulfilled shares to the next epoch.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 345,
+          "end": 395
+        }
+      ],
+      "title": "",
+      "id": "53673"
+    },
+    {
+      "type": "highlight",
+      "description": "**Manager actions (god mode):**\n- Single-call `manage(target, data, value)` and batch `manage(targets, data, values)`.\nThese allow the manager to execute arbitrary calls from the vault’s context—a critical trust assumption.",
+      "file": "src/HypoVault.sol",
+      "highlight": [
+        {
+          "start": 444,
+          "end": 466
+        }
+      ],
+      "title": "",
+      "id": "53674"
+    },
+    {
+      "type": "highlight",
+      "description": "NAV calculation entrypoint:\n`computeNAV` returns the vault’s **Net Asset Value (NAV)** denominated in its underlying token.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 89,
+          "end": 93
+        }
+      ],
+      "title": "",
+      "id": "53675"
+    },
+    {
+      "type": "highlight",
+      "description": "**Off-chain input and pools guard:**\nThe manager supplies necessary data like prices and pool configurations off-chain. The contract then validates this input by checking the provided pool configuration against a stored hash, ensuring the manager cannot arbitrarily alter the pools being valued.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 99,
+          "end": 106
+        }
+      ],
+      "title": "",
+      "id": "53676"
+    },
+    {
+      "type": "highlight",
+      "description": "**Oracle price verification:**\nOn-chain TWAP oracles are compared to manager-provided prices. If the absolute deviation exceeds `maxPriceDeviation`, the call reverts with `StaleOraclePrice`.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 113,
+          "end": 118
+        }
+      ],
+      "title": "",
+      "id": "53677"
+    },
+    {
+      "type": "textOnly",
+      "description": "To secure the NAV calculation, the contract validates the manager's off-chain `managerInput` with two on-chain checks, as seen in the previous steps:\n\n1. It verifies a hash of the pool configuration to prevent unauthorized changes to the pools being valued.\n2. It compares manager-provided prices against on-chain TWAP oracles, reverting on significant deviation.",
+      "title": "",
+      "id": "53681"
+    },
+    {
+      "type": "highlight",
+      "description": "**High-level NAV flow:**\nSumming the value of the `vault`’s `Panoptic option exposures` (positive legs only) and direct `token balances` produces the final **NAV** in terms of the underlying `token`.",
+      "file": "src/accountants/PanopticVaultAccountant.sol",
+      "highlight": [
+        {
+          "start": 249,
+          "end": 259
+        }
+      ],
+      "title": "",
+      "id": "53678"
+    },
+    {
+      "type": "textOnly",
+      "description": "**Key design patterns:**\n- **Epoch-based settlement:** Batches user actions for MEV mitigation.\n- **Manager-centric design:** A trusted manager operates the vault.\n- **Off-chain data with on-chain checks:** Uses off-chain data for computation to reduce gas costs, with on-chain checks to verify the data.",
+      "title": "",
+      "id": "53679"
+    },
+    {
+      "type": "textOnly",
+      "description": "Preview of upcoming tours:\n- `Vault`: Overview\n- `HypoVault`: State & Data Structures\n- `HypoVault`: Epoch-Based Flows\n- `HypoVault`: Manager Role\n- `PanopticVaultAccountant`: NAV Calculation\n- `HypoVault`: Performance Fees & Basis Tracking",
+      "title": "",
+      "id": "53680"
+    }
+  ]
+}
